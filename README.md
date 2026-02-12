@@ -18,3 +18,9 @@ View your app in AI Studio: https://ai.studio/apps/drive/10bnroZyUBFXxKM8YMoQvjk
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+
+## Deploy to Vercel
+
+Click the button below to deploy to Vercel:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FDanZai233%2FMoodCard&env=GEMINI_API_KEY&project-name=moodcard&repository-name=moodcard)
