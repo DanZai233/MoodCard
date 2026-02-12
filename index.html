@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MoodCard Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Importing aesthetic Chinese and English fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai:wght@300;400;700&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@300;500;700&family=ZCOOL+KuaiLe&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=ZCOOL+QingKe+HuangYou&family=Long+Cang&family=Zhi+Mang+Xing&display=swap" rel="stylesheet" crossorigin="anonymous">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              'wenkai': ['"LXGW WenKai"', 'cursive'],
+              'noto': ['"Noto Serif SC"', 'serif'],
+              'mashan': ['"Ma Shan Zheng"', 'cursive'],
+              'zcool': ['"ZCOOL KuaiLe"', 'cursive'],
+              'playfair': ['"Playfair Display"', 'serif'],
+              'huangyou': ['"ZCOOL QingKe HuangYou"', 'cursive'],
+              'longcang': ['"Long Cang"', 'cursive'],
+              'zhimang': ['"Zhi Mang Xing"', 'cursive'],
+            },
+            colors: {
+              primary: '#6366f1',
+              secondary: '#ec4899',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      /* Custom scrollbar for webkit */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+      /* Noise texture class */
+      .bg-noise::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.05;
+        pointer-events: none;
+        z-index: 10;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      }
+      .card-preview-container {
+         box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.41.0",
+    "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
+    "html-to-image": "https://esm.sh/html-to-image@1.11.11"
+  }
+}
+</script>
+</head>
+  <body class="bg-slate-100 text-slate-800">
+    <div id="root"></div>
+  </body>
+</html>
