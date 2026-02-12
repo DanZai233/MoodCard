@@ -1,15 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
-import { GoogleGenAI } from "@google/genai";
 import { toPng } from 'html-to-image';
-import { 
-  Type, 
-  Palette, 
-  Layout, 
-  Image as ImageIcon, 
-  Download, 
-  Share2, 
-  Sparkles, 
+import {
+  Type,
+  Palette,
+  Layout,
+  Image as ImageIcon,
+  Download,
+  Share2,
+  Sparkles,
   RotateCcw,
   Move,
   Plus,
@@ -30,12 +29,12 @@ import {
   CloudRain,
   Snowflake,
   CircleDashed,
-  Zap
+  Zap,
+  Settings
 } from 'lucide-react';
 import { CardState, FontFamily, Sticker, Template, GradientType, AspectRatio, TextAlign, LayoutPreset, EffectType } from './types';
-
-// Initialize Gemini
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+import { AIProviderService } from './services/ai-provider.service';
+import { SettingsModal } from './components/SettingsModal';
 
 // --- Constants & Data ---
 
@@ -465,6 +464,9 @@ const App = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isHitokotoLoading, setIsHitokotoLoading] = useState(false);
   const [previewSize, setPreviewSize] = useState({ width: 300, height: 400 });
+  const [showSettings, setShowSettings] = useState(false);
+
+  const aiService = new AIProviderService();
   
   // Dragging State
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -488,11 +490,15 @@ const App = () => {
   const handleGenerateText = async () => {
     setIsGenerating(true);
     try {
-      const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: "Generate a short, aesthetic, emotional or inspirational sentence in Chinese, max 20 words. Optionally include a matching author name or 'Unknown'. Return ONLY the sentence on the first line and the author on the second line.",
-      });
-      
+      const prompt = "Generate a short, aesthetic, emotional or inspirational sentence in Chinese, max 20 words. Optionally include a matching author name or 'Unknown'. Return ONLY the sentence on the first line and the author on the second line.";
+
+      const response = await aiService.generateText(prompt);
+
+      if (response.error) {
+        alert(`AI 生成失败: ${response.error}`);
+        return;
+      }
+
       const text = response.text || "";
       const lines = text.split('\n').filter(line => line.trim() !== '');
       if (lines.length > 0) {
@@ -771,6 +777,11 @@ const App = () => {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row font-sans">
+      <SettingsModal
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        onConfigured={() => {}}
+      />
       <style>{`
         @keyframes blob {
           0% { transform: translate(0px, 0px) scale(1); }
@@ -931,6 +942,18 @@ const App = () => {
 
       {/* --- Right Panel: Editor --- */}
       <div className="w-full md:w-[400px] bg-white border-l border-slate-200 flex flex-col h-[50vh] md:h-screen">
+        {/* Header with Settings Button */}
+        <div className="flex justify-between items-center px-4 py-3 border-b border-slate-100">
+          <h1 className="text-lg font-bold text-slate-800">Mood Card</h1>
+          <button
+            onClick={() => setShowSettings(true)}
+            className="text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 p-2 rounded-lg transition"
+            title="AI 配置"
+          >
+            <Settings size={20} />
+          </button>
+        </div>
+
         {/* Tabs */}
         <div className="flex border-b border-slate-100">
           <button onClick={() => setActiveTab('content')} className={`flex-1 py-4 text-sm font-medium flex flex-col items-center gap-1 ${activeTab === 'content' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-500 hover:text-slate-800'}`}>

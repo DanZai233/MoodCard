@@ -4,6 +4,20 @@ export type AspectRatio = 'portrait' | 'square' | 'landscape';
 export type TextAlign = 'left' | 'center' | 'right' | 'vertical-rl';
 export type EffectType = 'none' | 'snow' | 'rain' | 'sparkles' | 'orbs' | 'grain';
 
+export type AIProvider = 'openai' | 'anthropic' | 'zhipu' | 'volcengine' | 'gemini';
+
+export interface AIProviderConfig {
+  provider: AIProvider;
+  apiKey: string;
+  baseUrl?: string;
+  modelName?: string;
+}
+
+export interface AIProvidersState {
+  providers: AIProviderConfig[];
+  selectedProviderId: string;
+}
+
 export interface Position {
   x: number; // Percentage 0-100
   y: number; // Percentage 0-100
