@@ -30,7 +30,9 @@ import {
   Snowflake,
   CircleDashed,
   Zap,
-  Settings
+  Settings,
+  Video,
+  Loader2
 } from 'lucide-react';
 import { CardState, FontFamily, Sticker, Template, GradientType, AspectRatio, TextAlign, LayoutPreset, EffectType } from './types';
 import { AIProviderService } from './services/ai-provider.service';
@@ -465,6 +467,7 @@ const App = () => {
   const [isHitokotoLoading, setIsHitokotoLoading] = useState(false);
   const [previewSize, setPreviewSize] = useState({ width: 300, height: 400 });
   const [showSettings, setShowSettings] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
 
   const aiService = new AIProviderService();
   
@@ -636,13 +639,110 @@ const App = () => {
         URL.revokeObjectURL(url);
         alert("浏览器不支持直接分享，已为您下载图片。您可以手动分享到微信/微博/QQ。");
       }
-     } catch (e) {
+      } catch (e) {
        console.error(e);
      } finally {
        setTimeout(() => {
          (window as any).__isSharing = false;
        }, 1000);
      }
+  };
+
+  const handleRecordVideo = async () => {
+    if (!previewRef.current) return;
+
+    const hasDynamicEffect = cardState.effect !== 'none' || cardState.bgGradientType !== 'none';
+
+    if (!hasDynamicEffect) {
+      alert('当前卡片没有动态效果，建议使用"保存图片"功能。\n\n如果您仍想录制视频，请点击"录制屏幕"。');
+      return;
+    }
+
+    const isRecording = (window as any).__isRecording;
+    if (isRecording) return;
+    (window as any).__isRecording = true;
+    setIsRecording(true);
+
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: {
+          cursor: "never"
+        },
+        audio: false
+      });
+
+      const recorder = new MediaRecorder(stream, {
+        mimeType: 'video/webm;codecs=vp9'
+      });
+
+      const chunks: Blob[] = [];
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunks.push(event.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `mood-card-live-${Date.now()}.webm`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      recorder.start();
+
+      alert('开始录制！\n\n请选择当前标签页，录制 5 秒后自动停止。\n\n或按停止按钮提前结束。');
+
+      setTimeout(() => {
+        if (recorder.state !== 'inactive') {
+          recorder.stop();
+          setIsRecording(false);
+          (window as any).__isRecording = false;
+        }
+      }, 5000);
+
+      const stopBtn = document.createElement('button');
+      stopBtn.textContent = '⏹️ 停止录制';
+      stopBtn.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10000;
+        background: #ef4444;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        border: none;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+      `;
+      document.body.appendChild(stopBtn);
+
+      stopBtn.onclick = () => {
+        if (recorder.state !== 'inactive') {
+          recorder.stop();
+          document.body.removeChild(stopBtn);
+          setIsRecording(false);
+          (window as any).__isRecording = false;
+        }
+      };
+    } catch (error) {
+      console.error('Recording failed', error);
+      setIsRecording(false);
+      (window as any).__isRecording = false;
+
+      alert('录制失败：' + (error as Error).message + '\n\n\n替代方案：\n1. 使用手机/电脑自带的屏幕录制功能\n2. 使用 OBS、Loom 等专业录屏软件\n3. 录制后可转换为 Live Photo 格式');
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -830,18 +930,39 @@ const App = () => {
       >
          <div className="absolute inset-0 pattern-grid opacity-10 pointer-events-none"></div>
          
-         <div className="mb-6 flex gap-2">
-            <button 
-              onClick={handleDownload}
-              className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm hover:shadow-md transition text-slate-700 font-medium text-sm">
-              <Download size={16} /> 保存图片
-            </button>
-            <button 
-              onClick={handleShare}
-              className="flex items-center gap-2 bg-indigo-600 px-4 py-2 rounded-full shadow-sm hover:shadow-md transition text-white font-medium text-sm">
-              <Share2 size={16} /> 分享卡片
-            </button>
-         </div>
+          <div className="mb-6 flex gap-2">
+             <button
+               onClick={handleDownload}
+               className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm hover:shadow-md transition text-slate-700 font-medium text-sm">
+               <Download size={16} /> 保存图片
+             </button>
+             <button
+               onClick={handleRecordVideo}
+               disabled={isRecording}
+               className={`flex items-center gap-2 px-4 py-2 rounded-full shadow-sm transition font-medium text-sm ${
+                 isRecording
+                   ? 'bg-red-500 text-white'
+                   : cardState.effect !== 'none'
+                   ? 'bg-purple-600 text-white hover:bg-purple-700 hover:shadow-md'
+                   : 'bg-slate-200 text-slate-500 cursor-not-allowed'
+               }`}
+               title={cardState.effect === 'none' ? '需要先添加动态特效才能录制' : '录制 Live Photo 视频'}>
+               {isRecording ? (
+                 <>
+                   <Loader2 size={16} className="animate-spin" /> 录制中...
+                 </>
+               ) : (
+                 <>
+                   <Video size={16} /> Live Photo
+                 </>
+               )}
+             </button>
+             <button
+               onClick={handleShare}
+               className="flex items-center gap-2 bg-indigo-600 px-4 py-2 rounded-full shadow-sm hover:shadow-md transition text-white font-medium text-sm">
+               <Share2 size={16} /> 分享卡片
+             </button>
+          </div>
 
          <div 
            id="card-preview"
