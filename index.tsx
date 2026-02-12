@@ -571,28 +571,44 @@ const App = () => {
 
   const handleDownload = async () => {
     if (!previewRef.current) return;
+
+    const isDownloading = (window as any).__isDownloading;
+    if (isDownloading) return;
+    (window as any).__isDownloading = true;
+
     try {
-      const dataUrl = await toPng(previewRef.current, { 
-        cacheBust: true, 
+      const dataUrl = await toPng(previewRef.current, {
+        cacheBust: true,
         pixelRatio: 2,
         fetchRequestInit: { mode: 'cors' }
       });
-      
+
       const link = document.createElement('a');
       link.download = `mood-card-${Date.now()}.png`;
       link.href = dataUrl;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
     } catch (error) {
       console.error("Export failed", error);
       alert("导出失败，请重试 (可尝试截图保存)");
+    } finally {
+      setTimeout(() => {
+        (window as any).__isDownloading = false;
+      }, 1000);
     }
   };
 
   const handleShare = async () => {
      if (!previewRef.current) return;
+
+     const isSharing = (window as any).__isSharing;
+     if (isSharing) return;
+     (window as any).__isSharing = true;
+
      try {
-      const dataUrl = await toPng(previewRef.current, { 
-        cacheBust: true, 
+      const dataUrl = await toPng(previewRef.current, {
+        cacheBust: true,
         pixelRatio: 2,
         fetchRequestInit: { mode: 'cors' }
       });
@@ -614,12 +630,18 @@ const App = () => {
         const a = document.createElement('a');
         a.href = url;
         a.download = 'mood-card.png';
+        document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
         URL.revokeObjectURL(url);
         alert("浏览器不支持直接分享，已为您下载图片。您可以手动分享到微信/微博/QQ。");
       }
      } catch (e) {
        console.error(e);
+     } finally {
+       setTimeout(() => {
+         (window as any).__isSharing = false;
+       }, 1000);
      }
   };
 
