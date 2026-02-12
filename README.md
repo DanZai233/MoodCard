@@ -65,4 +65,4 @@ All configurations are saved in your browser's localStorage.
 
 Click the button below to deploy to Vercel:
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FDanZai233%2FMoodCard&project-name=moodcard&repository-name=moodcard)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FDanZai233%2FMoodCard)
