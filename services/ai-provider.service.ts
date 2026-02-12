@@ -196,7 +196,7 @@ export class AIProviderService {
 
   private async generateWithVolcengine(config: AIProviderConfig, prompt: string): Promise<GenerationResponse> {
     const baseUrl = config.baseUrl || 'https://ark.cn-beijing.volces.com/api/v3';
-    const modelName = config.modelName || 'ep-20241001000000-xxxxx';
+    const modelName = config.modelName || 'doubao-1-5-pro-32k-250115';
 
     const response = await fetch(`${baseUrl}/chat/completions`, {
       method: 'POST',
@@ -222,7 +222,14 @@ export class AIProviderService {
 
     if (!response.ok) {
       const error = await response.text();
-      throw new Error(`Volcengine API error: ${error}`);
+      try {
+        const errorJson = JSON.parse(error);
+        if (errorJson.error) {
+          throw new Error(`Volcengine API error: ${errorJson.error.message} (Model: ${modelName})`);
+        }
+      } catch (e) {
+        throw new Error(`Volcengine API error: ${error}`);
+      }
     }
 
     const data = await response.json();

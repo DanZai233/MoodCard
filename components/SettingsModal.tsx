@@ -9,7 +9,16 @@ interface SettingsModalProps {
   onConfigured: () => void;
 }
 
-const PROVIDER_INFO = {
+interface ProviderInfo {
+  name: string;
+  defaultBaseUrl: string;
+  defaultModel: string;
+  placeholder: string;
+  note?: string;
+  models?: string[];
+}
+
+const PROVIDER_INFO: Record<AIProvider, ProviderInfo> = {
   openai: {
     name: 'OpenAI',
     defaultBaseUrl: 'https://api.openai.com/v1',
@@ -31,9 +40,16 @@ const PROVIDER_INFO = {
   volcengine: {
     name: '火山引擎',
     defaultBaseUrl: 'https://ark.cn-beijing.volces.com/api/v3',
-    defaultModel: '',
+    defaultModel: 'doubao-1-5-pro-32k-250115',
     placeholder: '输入您的 API Key',
-    note: '火山引擎使用 model_name（推理接入点）作为模型标识'
+    note: '火山引擎使用推理接入点（Endpoint ID）作为模型标识，例如: doubao-1-5-pro-32k-250115',
+    models: [
+      'doubao-1-5-pro-32k-250115',
+      'doubao-1-5-pro-4k-250115',
+      'doubao-pro-32k-240515',
+      'doubao-pro-4k-240515',
+      'doubao-lite-32k-240515'
+    ]
   },
   gemini: {
     name: 'Google Gemini',
@@ -242,13 +258,31 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, o
                     <label className="text-xs text-slate-500 block mb-1">
                       Model Name / 推理接入点
                     </label>
-                    <input
-                      type="text"
-                      value={editingProvider.modelName || PROVIDER_INFO[editingProvider.provider as AIProvider].defaultModel}
-                      onChange={(e) => setEditingProvider({ ...editingProvider, modelName: e.target.value })}
-                      placeholder={PROVIDER_INFO[editingProvider.provider as AIProvider].defaultModel}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500"
-                    />
+                    {PROVIDER_INFO[editingProvider.provider as AIProvider].models ? (
+                      <>
+                        <select
+                          value={editingProvider.modelName || PROVIDER_INFO[editingProvider.provider as AIProvider].defaultModel}
+                          onChange={(e) => setEditingProvider({ ...editingProvider, modelName: e.target.value })}
+                          className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500"
+                        >
+                          <option value="">请选择模型...</option>
+                          {(PROVIDER_INFO[editingProvider.provider as AIProvider] as any).models.map((model: string) => (
+                            <option key={model} value={model}>{model}</option>
+                          ))}
+                        </select>
+                        <p className="text-[10px] text-slate-400 mt-1">
+                          模型列表来源于火山引擎常用模型，您也可以手动输入其他推理接入点
+                        </p>
+                      </>
+                    ) : (
+                      <input
+                        type="text"
+                        value={editingProvider.modelName || PROVIDER_INFO[editingProvider.provider as AIProvider].defaultModel}
+                        onChange={(e) => setEditingProvider({ ...editingProvider, modelName: e.target.value })}
+                        placeholder={PROVIDER_INFO[editingProvider.provider as AIProvider].defaultModel}
+                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500"
+                      />
+                    )}
                   </div>
 
                   <button
