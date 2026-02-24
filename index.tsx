@@ -37,6 +37,7 @@ import {
 import { CardState, FontFamily, Sticker, Template, GradientType, AspectRatio, TextAlign, LayoutPreset, EffectType } from './types';
 import { AIProviderService } from './services/ai-provider.service';
 import { SettingsModal } from './components/SettingsModal';
+import { WritePromptModal } from './components/WritePromptModal';
 
 // --- Constants & Data ---
 
@@ -467,6 +468,7 @@ const App = () => {
   const [isHitokotoLoading, setIsHitokotoLoading] = useState(false);
   const [previewSize, setPreviewSize] = useState({ width: 300, height: 400 });
   const [showSettings, setShowSettings] = useState(false);
+  const [showWriteModal, setShowWriteModal] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
 
   const aiService = new AIProviderService();
@@ -490,10 +492,30 @@ const App = () => {
     setCardState(prev => ({ ...prev, ...updates }));
   };
 
-  const handleGenerateText = async () => {
+  // 随机增加风格多样性，避免每次都同一种腔调
+  const POETIC_THEMES = [
+    '以物喻情、留白含蓄',
+    '略带古典诗词韵味',
+    '现代诗式的意象与节奏',
+    '日常小事里的哲思',
+    '季节与光影',
+    '疏离与温柔并存',
+    '克制的抒情、不说破'
+  ];
+
+  const handleGenerateText = async (userHint: string = '') => {
     setIsGenerating(true);
     try {
-      const prompt = "Generate a short, aesthetic, emotional or inspirational sentence in Chinese, max 20 words. Optionally include a matching author name or 'Unknown'. Return ONLY the sentence on the first line and the author on the second line.";
+      const theme = POETIC_THEMES[Math.floor(Math.random() * POETIC_THEMES.length)];
+      const hintPart = userHint
+        ? `用户希望的方向或关键词：${userHint}。请在此基础上发挥，保持诗意与文艺。\n\n`
+        : '本次可偏重以下风格（任选其一发挥）：' + theme + '。\n\n';
+      const prompt = `你是一位擅长写诗意、文艺短句的创作者。请写一句中文短句，要求：
+- 有诗意、有画面感，留白含蓄，避免烂大街的励志腔。
+- 长度控制在 20 字以内，可换行一次。
+- 若适合可附作者或出处（如「— 木心」「— 佚名」），否则第二行写「— 佚名」。
+
+${hintPart}只输出两行：第一行是正文，第二行是作者或出处。不要输出其他说明。`;
 
       const response = await aiService.generateText(prompt);
 
@@ -505,10 +527,13 @@ const App = () => {
       const text = response.text || "";
       const lines = text.split('\n').filter(line => line.trim() !== '');
       if (lines.length > 0) {
+        const authorLine = lines.length > 1 ? lines[1].trim() : '— 佚名';
+        const authorFormatted = authorLine.startsWith('—') ? authorLine : `— ${authorLine}`;
         updateState({
-          text: lines[0],
-          author: lines.length > 1 ? lines[1] : '— AI 生成'
+          text: lines[0].trim(),
+          author: authorFormatted
         });
+        setShowWriteModal(false);
       }
     } catch (error) {
       console.error("Failed to generate text", error);
@@ -904,6 +929,12 @@ const App = () => {
         onClose={() => setShowSettings(false)}
         onConfigured={() => {}}
       />
+      <WritePromptModal
+        isOpen={showWriteModal}
+        onClose={() => setShowWriteModal(false)}
+        onGenerate={handleGenerateText}
+        isGenerating={isGenerating}
+      />
       <style>{`
         @keyframes blob {
           0% { transform: translate(0px, 0px) scale(1); }
@@ -1132,7 +1163,7 @@ const App = () => {
                       <MessageSquareQuote size={12} /> {isHitokotoLoading ? '获取中...' : '一言'}
                     </button>
                     <button 
-                      onClick={handleGenerateText}
+                      onClick={() => setShowWriteModal(true)}
                       disabled={isGenerating}
                       className="flex items-center gap-1 text-xs bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-2 py-1 rounded-md shadow-sm hover:opacity-90 disabled:opacity-50 transition"
                       title="AI 生成灵感文案"
