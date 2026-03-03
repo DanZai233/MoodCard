@@ -258,30 +258,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, o
                     <label className="text-xs text-slate-500 block mb-1">
                       Model Name / 推理接入点
                     </label>
-                    {PROVIDER_INFO[editingProvider.provider as AIProvider].models ? (
-                      <>
-                        <select
-                          value={editingProvider.modelName || PROVIDER_INFO[editingProvider.provider as AIProvider].defaultModel}
-                          onChange={(e) => setEditingProvider({ ...editingProvider, modelName: e.target.value })}
-                          className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500"
-                        >
-                          <option value="">请选择模型...</option>
-                          {(PROVIDER_INFO[editingProvider.provider as AIProvider] as any).models.map((model: string) => (
-                            <option key={model} value={model}>{model}</option>
-                          ))}
-                        </select>
-                        <p className="text-[10px] text-slate-400 mt-1">
-                          模型列表来源于火山引擎常用模型，您也可以手动输入其他推理接入点
-                        </p>
-                      </>
-                    ) : (
-                      <input
-                        type="text"
-                        value={editingProvider.modelName || PROVIDER_INFO[editingProvider.provider as AIProvider].defaultModel}
-                        onChange={(e) => setEditingProvider({ ...editingProvider, modelName: e.target.value })}
-                        placeholder={PROVIDER_INFO[editingProvider.provider as AIProvider].defaultModel}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500"
-                      />
+                    <input
+                      type="text"
+                      value={editingProvider.modelName || PROVIDER_INFO[editingProvider.provider as AIProvider].defaultModel}
+                      onChange={(e) => setEditingProvider({ ...editingProvider, modelName: e.target.value })}
+                      placeholder={PROVIDER_INFO[editingProvider.provider as AIProvider].defaultModel}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500"
+                    />
+                    {editingProvider.provider === 'volcengine' && PROVIDER_INFO.volcengine.models && (
+                      <p className="text-[10px] text-slate-400 mt-1">
+                        常用模型: {PROVIDER_INFO.volcengine.models.join(', ')}
+                      </p>
                     )}
                   </div>
 
